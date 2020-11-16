@@ -30,7 +30,7 @@ public class Deck {
     private List<Card> cards;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "game_id", nullable = false, referencedColumnName = "id")
+    @JoinColumn(name = "game_id", referencedColumnName = "id")
     @JsonIgnore
     private Game game;
 }
