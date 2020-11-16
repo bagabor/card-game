@@ -1,13 +1,13 @@
 package com.example.cardGame.services;
 
 import com.example.cardGame.dao.models.Card;
-import com.example.cardGame.dao.models.Deck;
 import com.example.cardGame.dao.models.Game;
 import com.example.cardGame.dao.models.Player;
 import com.example.cardGame.dao.repositories.GameRepository;
 import com.example.cardGame.dao.repositories.PlayerRepository;
 import com.example.cardGame.exceptions.PlayerAlreadyAssignedToGameException;
 import com.example.cardGame.resources.dtos.GameDto;
+import com.example.cardGame.resources.dtos.PlayerAndValueDto;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -82,7 +83,7 @@ public class GameService {
         }
     }
 
-//    TODO: NEEDS TO BE IMPLEMENTED
+    //    TODO: NEEDS TO BE IMPLEMENTED
     private void shuffleCards(List<Card> allCards) {
 
     }
@@ -98,5 +99,23 @@ public class GameService {
         gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
         Player player = playerRepository.findByUsername(username).orElseThrow(EntityNotFoundException::new);
         playerRepository.delete(player);
+    }
+
+    public List<PlayerAndValueDto> getPLayersWithTheirPoints(Long gameId) throws EntityNotFoundException {
+        Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
+        List<PlayerAndValueDto> playersWithPoints = game.getListOfPlayers().stream()
+                .map(player -> {
+                    int value = 0;
+                    for (int i = 0; i < player.getCards().size(); i++) {
+                        value = value + player.getCards().get(i).getValue();
+                    }
+                    return PlayerAndValueDto.builder()
+                            .username(player.getUsername())
+                            .value(value)
+                            .build();
+                })
+                .collect(toList());
+        playersWithPoints.sort(comparingInt(PlayerAndValueDto::getValue).reversed());
+        return playersWithPoints;
     }
 }

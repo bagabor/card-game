@@ -1,20 +1,25 @@
 package com.example.cardGame.resources;
 
+import com.example.cardGame.resources.dtos.CardDto;
 import com.example.cardGame.resources.dtos.GameDto;
+import com.example.cardGame.resources.dtos.PlayerAndValueDto;
 import com.example.cardGame.services.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @AllArgsConstructor
+@RequestMapping("/games")
 public class GameResource {
 
     private final GameService gameService;
 
-    @PostMapping(path = "/games/create")
+    @PostMapping(path = "/create")
     public ResponseEntity createGame() {
         try {
             GameDto gameDto = gameService.createGame();
@@ -25,7 +30,7 @@ public class GameResource {
         }
     }
 
-    @DeleteMapping(path = "/games/delete/{id}")
+    @DeleteMapping(path = "/delete/{id}")
     public ResponseEntity deleteGame(@PathVariable("id") Long id) {
         try {
             gameService.deleteGame(id);
@@ -36,7 +41,7 @@ public class GameResource {
         }
     }
 
-    @PostMapping(path = "/games/player/add")
+    @PostMapping(path = "/player/add")
     public ResponseEntity addPlayerToGame(@RequestParam(name = "gameId") Long gameId,
                                           @RequestParam(name = "username") String username) {
         try {
@@ -48,7 +53,7 @@ public class GameResource {
         }
     }
 
-    @DeleteMapping(path = "/games/player/delete")
+    @DeleteMapping(path = "/player/delete")
     public ResponseEntity removePlayerFromAGame(@RequestParam(name = "gameId") Long gameId,
                                                 @RequestParam(name = "username") String username) {
         try {
@@ -60,13 +65,24 @@ public class GameResource {
         }
     }
 
-    @PostMapping(path = "/games/player/deal")
+    @PostMapping(path = "/player/deal")
     public ResponseEntity dealCardsForPlayers(@RequestParam(name = "gameId") Long gameId,
                                               @RequestParam(name = "username") String username,
                                               @RequestParam(name = "numberOfDeals") int numberOfDeals) {
         try {
             gameService.dealCardsForPlayers(gameId, username,numberOfDeals);
             return ResponseEntity.status(OK).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(path = "/{id}/players")
+    public ResponseEntity createDeck(@PathVariable(name = "id") Long gameId) {
+        try {
+            List<PlayerAndValueDto> cards = gameService.getPLayersWithTheirPoints(gameId);
+            return ResponseEntity.status(CREATED).body(cards);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
