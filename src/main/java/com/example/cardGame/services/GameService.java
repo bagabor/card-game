@@ -1,5 +1,7 @@
 package com.example.cardGame.services;
 
+import com.example.cardGame.dao.models.Card;
+import com.example.cardGame.dao.models.Deck;
 import com.example.cardGame.dao.models.Game;
 import com.example.cardGame.dao.models.Player;
 import com.example.cardGame.dao.repositories.GameRepository;
@@ -11,7 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @AllArgsConstructor
@@ -47,6 +54,39 @@ public class GameService {
         }
     }
 
+    @Transactional
+    public void dealCardsForPlayers(Long gameId, String username, int numberOfDeals) throws RuntimeException {
+        Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
+        Player player = playerRepository.findByUsername(username).orElseThrow(EntityNotFoundException::new);
+        if (numberOfDeals < 1) {
+            throw new RuntimeException("Deal number must be bigger than 0!");
+        }
+        dealCards(game, player, numberOfDeals);
+    }
+
+    private void dealCards(Game game, Player player, int numberOfDeals) {
+
+//        TODO: SHUFFLE IS NEEDED
+        List<Card> allCards = new ArrayList<>();
+        game.getListOfDecks().forEach(deck -> allCards.addAll(deck.getCards().stream()
+                .filter(card -> card.getPlayer() == null)
+                .collect(toList())));
+
+        Collections.shuffle(allCards);
+
+        for (int j = 0; j < numberOfDeals; j++) {
+            Card card = allCards.get(0);
+            player.getCards().add(card);
+            card.setPlayer(player);
+            allCards.remove(0);
+        }
+    }
+
+//    TODO: NEEDS TO BE IMPLEMENTED
+    private void shuffleCards(List<Card> allCards) {
+
+    }
+
     private long checkPlayer(Game game, String username) {
         return game.getListOfPlayers()
                 .stream()
@@ -54,7 +94,7 @@ public class GameService {
                 .count();
     }
 
-    public void removePlayerFromAGame(Long gameId, String username) throws EntityNotFoundException{
+    public void removePlayerFromAGame(Long gameId, String username) throws EntityNotFoundException {
         gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
         Player player = playerRepository.findByUsername(username).orElseThrow(EntityNotFoundException::new);
         playerRepository.delete(player);

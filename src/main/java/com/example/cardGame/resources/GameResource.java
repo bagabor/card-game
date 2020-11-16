@@ -60,4 +60,17 @@ public class GameResource {
         }
     }
 
+    @PostMapping(path = "/games/player/deal")
+    public ResponseEntity dealCardsForPlayers(@RequestParam(name = "gameId") Long gameId,
+                                              @RequestParam(name = "username") String username,
+                                              @RequestParam(name = "numberOfDeals") int numberOfDeals) {
+        try {
+            gameService.dealCardsForPlayers(gameId, username,numberOfDeals);
+            return ResponseEntity.status(OK).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
 }

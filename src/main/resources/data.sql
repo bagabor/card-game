@@ -28,8 +28,10 @@ create table CARD(
     CARD_TYPE varchar(10),
     VALUE int,
     DECK_ID int,
+    PLAYER_ID int,
     PRIMARY KEY(ID),
-    CONSTRAINT card_deck_fk FOREIGN KEY (DECK_ID) REFERENCES DECK (ID)
+    CONSTRAINT card_deck_fk FOREIGN KEY (DECK_ID) REFERENCES DECK (ID),
+    CONSTRAINT card_player_fk FOREIGN KEY (PLAYER_ID) REFERENCES DECK (ID)
 );
 
 -- insert into DECK (ID) values (1);

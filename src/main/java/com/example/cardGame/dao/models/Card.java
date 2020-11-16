@@ -37,4 +37,9 @@ public class Card {
     @JoinColumn(name = "deck_id", nullable = false, referencedColumnName = "id")
     @JsonIgnore
     private Deck deck;
+
+    @ManyToOne(fetch = LAZY)
+    @JoinColumn(name = "player_id", referencedColumnName = "id")
+    @JsonIgnore
+    private Player player;
 }
