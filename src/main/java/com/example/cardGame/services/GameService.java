@@ -8,18 +8,14 @@ import com.example.cardGame.dao.repositories.DeckRepository;
 import com.example.cardGame.dao.repositories.GameRepository;
 import com.example.cardGame.dao.repositories.PlayerRepository;
 import com.example.cardGame.exceptions.PlayerAlreadyAssignedToGameException;
-import com.example.cardGame.resources.dtos.GameDto;
-import com.example.cardGame.resources.dtos.PlayerAndValueDto;
-import com.example.cardGame.resources.dtos.RemainingCardDto;
+import com.example.cardGame.resources.dtos.*;
 import com.example.cardGame.utils.CardType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityNotFoundException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
@@ -127,7 +123,7 @@ public class GameService {
     @Transactional(readOnly = true)
     public List<RemainingCardDto> getRemainingCards(Long gameId) throws EntityNotFoundException {
         Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
-        List<Deck> listOfDecks = deckRepository.findByGame(game).orElseThrow(EntityNotFoundException::new);;
+        List<Deck> listOfDecks = deckRepository.findByGame(game).orElseThrow(EntityNotFoundException::new);
 
         List<Card> allCards = new ArrayList<>();
         listOfDecks.forEach(deck -> allCards.addAll(deck.getCards().stream()
@@ -145,5 +141,55 @@ public class GameService {
                     .build());
         }
         return listOfRemainingCards;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CardCountDto> getCountOfEachCard(Long gameId) {
+        Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
+        List<Deck> listOfDecks = deckRepository.findByGame(game).orElseThrow(EntityNotFoundException::new);
+        List<Card> allCards = new ArrayList<>();
+        listOfDecks.forEach(deck -> allCards.addAll(deck.getCards().stream()
+                .filter(card -> card.getPlayer() == null)
+                .collect(toList())));
+
+        List<CardCountDto> listOfCardCountDtos = new ArrayList<>();
+        Map<Integer, String> cardNames = getCardNames();
+
+        for (CardType type : CardType.values()) {
+            List<CardCountFaceDto> cardTypes = new ArrayList<>();
+
+//        type filtering
+            List<Card> listOfCardsFromTheSameType = allCards.stream()
+                    .filter(card -> type.equals(card.getCardType()))
+                    .collect(toList());
+            
+            for (int i = 1; i <= 13; i++) {
+                List<Card> listOfSameCardFaces = new ArrayList<>();
+                for (int j = 0; j < listOfCardsFromTheSameType.size(); j++) {
+                    if (listOfCardsFromTheSameType.get(j).getValue() == i) {
+                        listOfSameCardFaces.add(listOfCardsFromTheSameType.get(j));
+                    }
+                }
+                cardTypes.add(CardCountFaceDto.builder()
+                        .name(cardNames.get(i))
+                        .count(listOfSameCardFaces.size())
+                        .build());
+            }
+
+            listOfCardCountDtos.add(CardCountDto.builder()
+                    .typeName(type.name())
+                    .cardTypes(cardTypes)
+                    .build());
+        }
+        return listOfCardCountDtos;
+    }
+
+    private Map<Integer, String> getCardNames() {
+        String[] cardNames = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"};
+        Map<Integer, String> mapOfCardNames = new HashMap<>();
+        for (int i = 1; i <= 13; i++) {
+            mapOfCardNames.put(i, cardNames[i - 1]);
+        }
+        return mapOfCardNames;
     }
 }

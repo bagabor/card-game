@@ -1,9 +1,6 @@
 package com.example.cardGame.resources;
 
-import com.example.cardGame.resources.dtos.CardDto;
-import com.example.cardGame.resources.dtos.GameDto;
-import com.example.cardGame.resources.dtos.PlayerAndValueDto;
-import com.example.cardGame.resources.dtos.RemainingCardDto;
+import com.example.cardGame.resources.dtos.*;
 import com.example.cardGame.services.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -71,7 +68,7 @@ public class GameResource {
                                               @RequestParam(name = "username") String username,
                                               @RequestParam(name = "numberOfDeals") int numberOfDeals) {
         try {
-            gameService.dealCardsForPlayers(gameId, username,numberOfDeals);
+            gameService.dealCardsForPlayers(gameId, username, numberOfDeals);
             return ResponseEntity.status(OK).body(null);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
@@ -94,6 +91,17 @@ public class GameResource {
     public ResponseEntity getRemainingCards(@PathVariable(name = "id") Long gameId) {
         try {
             List<RemainingCardDto> cards = gameService.getRemainingCards(gameId);
+            return ResponseEntity.status(CREATED).body(cards);
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(path = "/{id}/cards/count")
+    public ResponseEntity getCountOfEachCard(@PathVariable(name = "id") Long gameId) {
+        try {
+            List<CardCountDto> cards = gameService.getCountOfEachCard(gameId);
             return ResponseEntity.status(CREATED).body(cards);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
