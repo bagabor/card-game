@@ -162,8 +162,9 @@ public class GameService {
             List<Card> listOfCardsFromTheSameType = allCards.stream()
                     .filter(card -> type.equals(card.getCardType()))
                     .collect(toList());
-            
-            for (int i = 1; i <= 13; i++) {
+
+//            card filtering based on their values 1-13 values are used
+            for (int i = 13; i >= 1; i--) {
                 List<Card> listOfSameCardFaces = new ArrayList<>();
                 for (int j = 0; j < listOfCardsFromTheSameType.size(); j++) {
                     if (listOfCardsFromTheSameType.get(j).getValue() == i) {

@@ -80,7 +80,7 @@ public class GameResource {
     public ResponseEntity getPlayersWithPoints(@PathVariable(name = "id") Long gameId) {
         try {
             List<PlayerAndValueDto> cards = gameService.getPLayersWithTheirPoints(gameId);
-            return ResponseEntity.status(CREATED).body(cards);
+            return ResponseEntity.status(OK).body(cards);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
@@ -91,7 +91,7 @@ public class GameResource {
     public ResponseEntity getRemainingCards(@PathVariable(name = "id") Long gameId) {
         try {
             List<RemainingCardDto> cards = gameService.getRemainingCards(gameId);
-            return ResponseEntity.status(CREATED).body(cards);
+            return ResponseEntity.status(OK).body(cards);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
@@ -102,7 +102,7 @@ public class GameResource {
     public ResponseEntity getCountOfEachCard(@PathVariable(name = "id") Long gameId) {
         try {
             List<CardCountDto> cards = gameService.getCountOfEachCard(gameId);
-            return ResponseEntity.status(CREATED).body(cards);
+            return ResponseEntity.status(OK).body(cards);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
                     .body(e.getMessage());
