@@ -1,13 +1,17 @@
 package com.example.cardGame.services;
 
 import com.example.cardGame.dao.models.Card;
+import com.example.cardGame.dao.models.Deck;
 import com.example.cardGame.dao.models.Game;
 import com.example.cardGame.dao.models.Player;
+import com.example.cardGame.dao.repositories.DeckRepository;
 import com.example.cardGame.dao.repositories.GameRepository;
 import com.example.cardGame.dao.repositories.PlayerRepository;
 import com.example.cardGame.exceptions.PlayerAlreadyAssignedToGameException;
 import com.example.cardGame.resources.dtos.GameDto;
 import com.example.cardGame.resources.dtos.PlayerAndValueDto;
+import com.example.cardGame.resources.dtos.RemainingCardDto;
+import com.example.cardGame.utils.CardType;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import static java.util.Comparator.comparingInt;
@@ -27,6 +30,7 @@ public class GameService {
 
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
+    private final DeckRepository deckRepository;
 
     public GameDto createGame() {
         Game game = gameRepository.save(Game.builder().build());
@@ -101,6 +105,7 @@ public class GameService {
         playerRepository.delete(player);
     }
 
+    @Transactional(readOnly = true)
     public List<PlayerAndValueDto> getPLayersWithTheirPoints(Long gameId) throws EntityNotFoundException {
         Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
         List<PlayerAndValueDto> playersWithPoints = game.getListOfPlayers().stream()
@@ -117,5 +122,28 @@ public class GameService {
                 .collect(toList());
         playersWithPoints.sort(comparingInt(PlayerAndValueDto::getValue).reversed());
         return playersWithPoints;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RemainingCardDto> getRemainingCards(Long gameId) throws EntityNotFoundException {
+        Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
+        List<Deck> listOfDecks = deckRepository.findByGame(game).orElseThrow(EntityNotFoundException::new);;
+
+        List<Card> allCards = new ArrayList<>();
+        listOfDecks.forEach(deck -> allCards.addAll(deck.getCards().stream()
+                .filter(card -> card.getPlayer() == null)
+                .collect(toList())));
+        List<RemainingCardDto> listOfRemainingCards = new ArrayList<>();
+
+        for (CardType type : CardType.values()) {
+            long numberOfCards = allCards.stream()
+                    .filter(card -> type.equals(card.getCardType()))
+                    .count();
+            listOfRemainingCards.add(RemainingCardDto.builder()
+                    .cardType(type.name())
+                    .numberOfRemainingCards(numberOfCards)
+                    .build());
+        }
+        return listOfRemainingCards;
     }
 }

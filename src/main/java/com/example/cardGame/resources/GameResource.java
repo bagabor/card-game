@@ -3,6 +3,7 @@ package com.example.cardGame.resources;
 import com.example.cardGame.resources.dtos.CardDto;
 import com.example.cardGame.resources.dtos.GameDto;
 import com.example.cardGame.resources.dtos.PlayerAndValueDto;
+import com.example.cardGame.resources.dtos.RemainingCardDto;
 import com.example.cardGame.services.GameService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -79,9 +80,20 @@ public class GameResource {
     }
 
     @GetMapping(path = "/{id}/players")
-    public ResponseEntity createDeck(@PathVariable(name = "id") Long gameId) {
+    public ResponseEntity getPlayersWithPoints(@PathVariable(name = "id") Long gameId) {
         try {
             List<PlayerAndValueDto> cards = gameService.getPLayersWithTheirPoints(gameId);
+            return ResponseEntity.status(CREATED).body(cards);
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
+    @GetMapping(path = "/{id}/cards")
+    public ResponseEntity getRemainingCards(@PathVariable(name = "id") Long gameId) {
+        try {
+            List<RemainingCardDto> cards = gameService.getRemainingCards(gameId);
             return ResponseEntity.status(CREATED).body(cards);
         } catch (Exception e) {
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
