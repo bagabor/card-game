@@ -4,6 +4,7 @@ import com.example.cardGame.dao.models.Card;
 import com.example.cardGame.dao.models.Deck;
 import com.example.cardGame.dao.models.Game;
 import com.example.cardGame.dao.models.Player;
+import com.example.cardGame.dao.repositories.CardRepository;
 import com.example.cardGame.dao.repositories.DeckRepository;
 import com.example.cardGame.dao.repositories.GameRepository;
 import com.example.cardGame.dao.repositories.PlayerRepository;
@@ -27,6 +28,7 @@ public class GameService {
     private final GameRepository gameRepository;
     private final PlayerRepository playerRepository;
     private final DeckRepository deckRepository;
+    private final CardRepository cardRepository;
 
     public GameDto createGame() {
         Game game = gameRepository.save(Game.builder().build());
@@ -83,9 +85,41 @@ public class GameService {
         }
     }
 
-    //    TODO: NEEDS TO BE IMPLEMENTED
-    private void shuffleCards(List<Card> allCards) {
+    @Transactional
+    public void shuffleCards(Long gameId) throws EntityNotFoundException {
+        Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
+        List<Deck> gameDecks = deckRepository.findAllByGame(game).orElseThrow(EntityNotFoundException::new);
 
+
+        gameDecks.forEach(deck -> {
+            List<Card> allCards = new ArrayList<>();
+            List<Card> persistedCards = deck.getCards();
+            persistedCards.forEach(card -> allCards.add(Card.builder()
+                    .deck(card.getDeck())
+                    .value(card.getValue())
+                    .cardType(card.getCardType())
+                    .player(card.getPlayer())
+                    .build()));
+            deck.setCards(new ArrayList<>());
+            cardRepository.deleteAll(persistedCards);
+
+            Card arr[] = allCards.toArray(new Card[0]);
+            Random r = new Random();
+            int n = 50; // permutation
+            for (int i = n - 1; i > 0; i--) {
+
+                // Pick a random index from 0 to i
+                int j = r.nextInt(i);
+
+                // Swap arr[i] with the element at random index
+                Card temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+            for (int j = 0; j < arr.length; j++) {
+                deck.getCards().add(arr[j]);
+            }
+        });
     }
 
     private long checkPlayer(Game game, String username) {

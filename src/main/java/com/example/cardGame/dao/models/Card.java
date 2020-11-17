@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -34,7 +33,7 @@ public class Card {
     private int value;
 
     @ManyToOne(fetch = LAZY)
-    @JoinColumn(name = "deck_id", nullable = false, referencedColumnName = "id")
+    @JoinColumn(name = "deck_id", referencedColumnName = "id")
     @JsonIgnore
     private Deck deck;
 

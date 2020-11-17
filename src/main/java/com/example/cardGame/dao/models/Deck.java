@@ -26,7 +26,7 @@ public class Deck {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @OneToMany(mappedBy = "deck", cascade = ALL, fetch = EAGER, orphanRemoval = true)
+    @OneToMany(mappedBy = "deck", cascade = ALL, fetch = EAGER)
     private List<Card> cards;
 
     @ManyToOne(fetch = LAZY)

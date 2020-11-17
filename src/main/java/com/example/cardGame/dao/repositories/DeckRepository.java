@@ -11,4 +11,8 @@ import java.util.Optional;
 @Repository
 public interface DeckRepository extends JpaRepository<Deck, Long> {
     Optional<List<Deck>> findByGame(Game game);
+
+    void deleteAllByGame(Game game);
+
+    Optional<List<Deck>> findAllByGame(Game game);
 }

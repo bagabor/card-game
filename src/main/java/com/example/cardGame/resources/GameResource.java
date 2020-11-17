@@ -109,4 +109,15 @@ public class GameResource {
         }
     }
 
+    @PostMapping(path = "/{id}/shuffle")
+    public ResponseEntity shuffle(@PathVariable(name = "id") Long gameId) {
+        try {
+            gameService.shuffleCards(gameId);
+            return ResponseEntity.status(OK).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(INTERNAL_SERVER_ERROR)
+                    .body(e.getMessage());
+        }
+    }
+
 }
