@@ -12,6 +12,7 @@ import com.example.cardGame.exceptions.PlayerAlreadyAssignedToGameException;
 import com.example.cardGame.resources.dtos.*;
 import com.example.cardGame.utils.CardType;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.*;
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class GameService {
@@ -32,14 +34,16 @@ public class GameService {
 
     public GameDto createGame() {
         Game game = gameRepository.save(Game.builder().build());
+        log.info("Game has been created with id: " + game.getId());
         return GameDto.builder()
                 .id(game.getId())
                 .build();
     }
 
-    //TODO: add better exception handling...
-    public void deleteGame(Long id) {
+    public void deleteGame(Long id) throws EntityNotFoundException {
+        gameRepository.findById(id).orElseThrow(EntityNotFoundException::new);
         gameRepository.deleteById(id);
+        log.info("Game has been deleted with id: " + id);
     }
 
     @Transactional
@@ -54,28 +58,38 @@ public class GameService {
                     .game(game)
                     .build());
             game.getListOfPlayers().add(player);
+            log.info("Player: " + username + " has been added to a game: " + gameId);
         }
     }
 
     @Transactional
-    public void dealCardsForPlayers(Long gameId, String username, int numberOfDeals) throws RuntimeException {
+    public PlayerDto dealCardsForPlayers(Long gameId, String username, int numberOfDeals) throws RuntimeException {
         Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
         Player player = playerRepository.findByUsername(username).orElseThrow(EntityNotFoundException::new);
         if (numberOfDeals < 1) {
             throw new RuntimeException("Deal number must be bigger than 0!");
         }
         dealCards(game, player, numberOfDeals);
+
+        List<CardDto> cards = player.getCards()
+                .stream()
+                .map(card -> CardDto.builder()
+                        .id(card.getId())
+                        .cardType(card.getCardType())
+                        .value(card.getValue())
+                        .build())
+                .collect(toList());
+        return PlayerDto.builder()
+                .id(player.getId())
+                .cards(cards)
+                .build();
     }
 
     private void dealCards(Game game, Player player, int numberOfDeals) {
-
-//        TODO: SHUFFLE IS NEEDED
         List<Card> allCards = new ArrayList<>();
         game.getListOfDecks().forEach(deck -> allCards.addAll(deck.getCards().stream()
                 .filter(card -> card.getPlayer() == null)
                 .collect(toList())));
-
-        Collections.shuffle(allCards);
 
         for (int j = 0; j < numberOfDeals; j++) {
             Card card = allCards.get(0);
@@ -120,6 +134,7 @@ public class GameService {
                 deck.getCards().add(arr[j]);
             }
         });
+        log.info("Card shuffle has been done");
     }
 
     private long checkPlayer(Game game, String username) {
@@ -133,6 +148,7 @@ public class GameService {
         gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
         Player player = playerRepository.findByUsername(username).orElseThrow(EntityNotFoundException::new);
         playerRepository.delete(player);
+        log.info("Player: " + username + " has been removed from a game: " + gameId);
     }
 
     @Transactional(readOnly = true)
@@ -157,7 +173,7 @@ public class GameService {
     @Transactional(readOnly = true)
     public List<RemainingCardDto> getRemainingCards(Long gameId) throws EntityNotFoundException {
         Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
-        List<Deck> listOfDecks = deckRepository.findByGame(game).orElseThrow(EntityNotFoundException::new);
+        List<Deck> listOfDecks = deckRepository.findAllByGame(game).orElseThrow(EntityNotFoundException::new);
 
         List<Card> allCards = new ArrayList<>();
         listOfDecks.forEach(deck -> allCards.addAll(deck.getCards().stream()
@@ -180,7 +196,7 @@ public class GameService {
     @Transactional(readOnly = true)
     public List<CardCountDto> getCountOfEachCard(Long gameId) {
         Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
-        List<Deck> listOfDecks = deckRepository.findByGame(game).orElseThrow(EntityNotFoundException::new);
+        List<Deck> listOfDecks = deckRepository.findAllByGame(game).orElseThrow(EntityNotFoundException::new);
         List<Card> allCards = new ArrayList<>();
         listOfDecks.forEach(deck -> allCards.addAll(deck.getCards().stream()
                 .filter(card -> card.getPlayer() == null)

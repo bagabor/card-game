@@ -9,6 +9,7 @@ import com.example.cardGame.resources.dtos.CardDto;
 import com.example.cardGame.resources.dtos.DeckDto;
 import com.example.cardGame.utils.CardType;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 public class DeckService {
@@ -25,12 +27,14 @@ public class DeckService {
 
     @Transactional
     public DeckDto createDeck() {
-
         Deck deck = Deck.builder()
                 .cards(new ArrayList<>())
                 .build();
         Deck persistedDeck = deckRepository.save(deck);
+        log.info("deck has been saved with id: " + deck.getId());
+
         addCards(deck);
+        log.info("cards have been saved for deck with id: " + deck.getId());
         return DeckDto.builder()
                 .id(persistedDeck.getId())
                 .cards(deck.getCards()
@@ -50,6 +54,7 @@ public class DeckService {
         Game game = gameRepository.findById(gameId).orElseThrow(EntityNotFoundException::new);
         Deck deck = deckRepository.findById(deckId).orElseThrow(EntityNotFoundException::new);
         deck.setGame(game);
+        log.info("deck : " + deck.getId() + " has been added to game: " + game.getId());
     }
 
     private void addCards(Deck deck) {

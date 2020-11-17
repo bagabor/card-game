@@ -3,6 +3,7 @@ package com.example.cardGame.resources;
 import com.example.cardGame.resources.dtos.*;
 import com.example.cardGame.services.GameService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ import java.util.List;
 
 import static org.springframework.http.HttpStatus.*;
 
+@Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/games")
@@ -23,8 +25,9 @@ public class GameResource {
             GameDto gameDto = gameService.createGame();
             return ResponseEntity.status(CREATED).body(gameDto);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -34,8 +37,9 @@ public class GameResource {
             gameService.deleteGame(id);
             return ResponseEntity.status(OK).body("Game has been deleted with id: " + id);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -44,10 +48,11 @@ public class GameResource {
                                           @RequestParam(name = "username") String username) {
         try {
             gameService.addPlayerToGame(gameId, username);
-            return ResponseEntity.status(CREATED).body(null);
+            return ResponseEntity.status(CREATED).body("Player has been added to game, game id is: " + gameId);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -56,10 +61,11 @@ public class GameResource {
                                                 @RequestParam(name = "username") String username) {
         try {
             gameService.removePlayerFromAGame(gameId, username);
-            return ResponseEntity.status(OK).body(null);
+            return ResponseEntity.status(OK).body("Player has been removed");
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -68,11 +74,13 @@ public class GameResource {
                                               @RequestParam(name = "username") String username,
                                               @RequestParam(name = "numberOfDeals") int numberOfDeals) {
         try {
-            gameService.dealCardsForPlayers(gameId, username, numberOfDeals);
-            return ResponseEntity.status(OK).body(null);
+            gameService.shuffleCards(gameId);
+            PlayerDto player = gameService.dealCardsForPlayers(gameId, username, numberOfDeals);
+            return ResponseEntity.status(OK).body(player);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -82,8 +90,9 @@ public class GameResource {
             List<PlayerAndValueDto> cards = gameService.getPLayersWithTheirPoints(gameId);
             return ResponseEntity.status(OK).body(cards);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -93,8 +102,9 @@ public class GameResource {
             List<RemainingCardDto> cards = gameService.getRemainingCards(gameId);
             return ResponseEntity.status(OK).body(cards);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -104,8 +114,9 @@ public class GameResource {
             List<CardCountDto> cards = gameService.getCountOfEachCard(gameId);
             return ResponseEntity.status(OK).body(cards);
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
@@ -113,10 +124,11 @@ public class GameResource {
     public ResponseEntity shuffle(@PathVariable(name = "id") Long gameId) {
         try {
             gameService.shuffleCards(gameId);
-            return ResponseEntity.status(OK).body(null);
+            return ResponseEntity.status(OK).body("Shuffle has been done");
         } catch (Exception e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(INTERNAL_SERVER_ERROR)
-                    .body(e.getMessage());
+                    .body("Some error has been occurred");
         }
     }
 
