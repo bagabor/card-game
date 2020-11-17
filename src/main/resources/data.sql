@@ -33,6 +33,3 @@ create table CARD(
     CONSTRAINT card_deck_fk FOREIGN KEY (DECK_ID) REFERENCES DECK (ID),
     CONSTRAINT card_player_fk FOREIGN KEY (PLAYER_ID) REFERENCES DECK (ID)
 );
-
--- insert into DECK (ID) values (1);
--- insert into CARD (CARD_TYPE, VALUE, DECK_ID) values ('DIAMONDS', 2, 1);
